@@ -13,8 +13,13 @@ public class SchedulerTestService {
 
     @Scheduled(fixedRate = 10000)
     public void reportCurrentTime() {
-        testService.updateGrid();
-        System.out.println("scheduled");
+//        testService.updateGrid();
+//        System.out.println("scheduled");
+    }
+
+    @Scheduled(fixedRate = 1000)
+    public void downloadEpisodesFromList() {
+        testService.downloadEpisodeFromList();
     }
 
 }

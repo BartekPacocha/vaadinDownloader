@@ -8,6 +8,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.shared.Registration;
@@ -17,9 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
-import static com.example.cdaVaadin.services.TestService.getDataFromList;
-import static com.example.cdaVaadin.services.TestService.startUpdateFakeData;
-import static com.example.cdaVaadin.services.TestService.stopUpdateFakeData;
+import static com.example.cdaVaadin.services.TestService.*;
 
 @Route("test")
 public class TestView extends VerticalLayout {
@@ -31,6 +30,8 @@ public class TestView extends VerticalLayout {
 
     private final Button buttonStartCreateFakeData = new Button("Start fake data");
     private final Button buttonStopCreateFakeData = new Button("Stop fake data");
+
+    private final TextArea textArea = new TextArea("Episode number");
 
     Span span = new Span("5000");
 
@@ -46,6 +47,7 @@ public class TestView extends VerticalLayout {
 
     public TestView() {
         this.setupGrid();
+        this.setupDownloadSection();
         this.setupButtons();
         this.setupCreateFakeDataButtons();
 
@@ -53,7 +55,7 @@ public class TestView extends VerticalLayout {
 
         add(buttonStopUpdate);
 
-        UI.getCurrent().setPollInterval(5000);
+        UI.getCurrent().setPollInterval(2000);
         Registration registration = UI.getCurrent().addPollListener(e -> refreshGridData());
     }
 
@@ -71,6 +73,22 @@ public class TestView extends VerticalLayout {
         add(grid);
     }
 
+    private void setupDownloadSection() {
+        Button downloadEpisodeButton = new Button("Download episode");
+
+        downloadEpisodeButton.addClickListener(e -> startDownloadingEpisode());
+
+        HorizontalLayout horizontalLayout = new HorizontalLayout();
+        horizontalLayout.add(textArea, downloadEpisodeButton);
+        add(horizontalLayout);
+    }
+
+    private void startDownloadingEpisode() {
+        Integer episodeNumber = Integer.valueOf(textArea.getValue());
+
+        testService.testMethod(episodeNumber);
+    }
+
     private void setupButtons() {
         buttonStartUpdate.addClickListener(e -> startUpdate());
         buttonPlusInterval.addClickListener(e -> plusInterval());
@@ -85,7 +103,6 @@ public class TestView extends VerticalLayout {
     private void setupCreateFakeDataButtons() {
         buttonStartCreateFakeData.addClickListener(e -> startCreateFakeData());
         buttonStopCreateFakeData.addClickListener(e -> stopCreateFakeData());
-
 
         HorizontalLayout horizontalLayout = new HorizontalLayout();
         horizontalLayout.add(buttonStartCreateFakeData, buttonStopCreateFakeData);

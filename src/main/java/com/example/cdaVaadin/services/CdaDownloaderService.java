@@ -1,6 +1,14 @@
 package com.example.cdaVaadin.services;
 
+import com.example.cdaVaadin.dtos.DownloadFileInfoDto;
 import lombok.RequiredArgsConstructor;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedInputStream;
@@ -18,89 +26,116 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class CdaDownloaderService {
 
-    private void download() {
-//        System.out.println("Start");
-//
-//        List<Integer> missingEpisodesToRetry = loadMissingEpisodes();
-//
-//        while (!missingEpisodesToRetry.isEmpty()) {
-//
-//            System.out.println("Start Firefox");
-//            FirefoxOptions options = new FirefoxOptions();
-//            options.setHeadless(true);
-//
-//            WebDriver driver = new FirefoxDriver(options);
-//
-//            int counter = 1;
-//
-//            for (int i = 1; i <= 999; i++) {
-//
-//                if (!missingEpisodesToRetry.isEmpty()) {
-//                    if (!missingEpisodesToRetry.contains(i)) {
-//                        continue;
-//                    } else {
-//                        int size = missingEpisodesToRetry.size();
-//                        System.out.println(counter + "/" + size);
-//                        counter++;
-//                    }
-//                }
-//
-//                String wbijamUrl = getWbijamUrl(i);
-//                System.out.println("Get " + i);
-//
-//                try {
-//                    Document wbijamDoc = Jsoup.connect(wbijamUrl).get();
-//                    Elements table = wbijamDoc.getElementsByTag("table");
-//                    Element element = table.get(0).getElementsByTag("tr").get(2).getElementsByTag("td").get(4);
-//                    String rel = element.select(".odtwarzacz_link").attr("rel");
-//
-//                    String odtwarzacz = getOdtwarzacz(rel);
-//
-//                    Document doc2 = Jsoup.connect(odtwarzacz).get();
-//
-//                    String player = "";
-//
-//                    for (Element a : doc2.select("a")) {
-//                        String href = a.attr("href");
-//                        boolean cda = href.contains("cda");
-//                        if (cda) {
-//                            player = href;
-//                            break;
-//                        }
-//                    }
-//
-//                    driver.get(player);
-//                    Document doc4 = Jsoup.parse(driver.getPageSource());
-//
-//                    Elements elementsByClass = doc4.getElementsByClass("pb-video-player-content");
-//                    if (elementsByClass.isEmpty()) {
-//                        System.out.println("Missing episode: " + i);
-//                        appendLineToFile("missing.txt", String.valueOf(i));
-//                        continue;
-//                    }
-//                    String src = elementsByClass.get(0).getElementsByClass("pb-video-player").get(0).attr("src");
-//
-//                    appendLineToFile("lista.txt", i + " - " + src);
-//                    System.out.println("Download link to episode: " + i);
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//
-//            driver.close();
-//            killFirefoxAndGeckoDriver();
-//            System.out.println("Stop Firefox");
-//
-//            missingEpisodesToRetry = loadMissingEpisodes();
-//        }
-//
-//        // download mp4
-//        downloadMp4List();
+    private static final List<DownloadFileInfoDto> EPISODE_LIST = new ArrayList<>();
+    private static final List<Integer> EPISODE_TO_DOWNLOAD_LIST = new ArrayList<>();
+
+    public static List<DownloadFileInfoDto> getEpisodeList() {
+        return EPISODE_LIST;
+    }
+
+    public static void addEpisodeToList(DownloadFileInfoDto fileInfoDto) {
+        EPISODE_LIST.clear();
+        EPISODE_LIST.add(fileInfoDto);
+    }
+
+    public static void addEpisodeToDownloadList(Integer episodeNumber) {
+        EPISODE_TO_DOWNLOAD_LIST.add(episodeNumber);
+    }
+
+    public void downloadEpisode() {
+        if (!EPISODE_TO_DOWNLOAD_LIST.isEmpty()) {
+            for (Integer episode : EPISODE_TO_DOWNLOAD_LIST) {
+                download(episode);
+            }
+
+            EPISODE_TO_DOWNLOAD_LIST.clear();
+        }
+    }
+
+    public void download(Integer episodeNumber) {
+        System.out.println("Start");
+
+        List<Integer> missingEpisodesToRetry = List.of(episodeNumber);
+
+        while (!missingEpisodesToRetry.isEmpty()) {
+
+            System.out.println("Start Firefox");
+            FirefoxOptions options = new FirefoxOptions();
+            options.setHeadless(true);
+
+            WebDriver driver = new FirefoxDriver(options);
+
+            int counter = 1;
+
+            for (int i = 1; i <= 999; i++) {
+
+                if (!missingEpisodesToRetry.isEmpty()) {
+                    if (!missingEpisodesToRetry.contains(i)) {
+                        continue;
+                    } else {
+                        int size = missingEpisodesToRetry.size();
+                        System.out.println(counter + "/" + size);
+                        counter++;
+                    }
+                }
+
+                String wbijamUrl = getWbijamUrl(i);
+                System.out.println("Get " + i);
+
+                try {
+                    Document wbijamDoc = Jsoup.connect(wbijamUrl).get();
+                    Elements table = wbijamDoc.getElementsByTag("table");
+                    Element element = table.get(0).getElementsByTag("tr").get(2).getElementsByTag("td").get(4);
+                    String rel = element.select(".odtwarzacz_link").attr("rel");
+
+                    String odtwarzacz = getOdtwarzacz(rel);
+
+                    Document doc2 = Jsoup.connect(odtwarzacz).get();
+
+                    String player = "";
+
+                    for (Element a : doc2.select("a")) {
+                        String href = a.attr("href");
+                        boolean cda = href.contains("cda");
+                        if (cda) {
+                            player = href;
+                            break;
+                        }
+                    }
+
+                    driver.get(player);
+                    Document doc4 = Jsoup.parse(driver.getPageSource());
+
+                    Elements elementsByClass = doc4.getElementsByClass("pb-video-player-content");
+                    if (elementsByClass.isEmpty()) {
+                        System.out.println("Missing episode: " + i);
+                        appendLineToFile("missing.txt", String.valueOf(i));
+                        continue;
+                    }
+                    String src = elementsByClass.get(0).getElementsByClass("pb-video-player").get(0).attr("src");
+
+                    appendLineToFile("lista.txt", i + " - " + src);
+                    System.out.println("Download link to episode: " + i);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            driver.close();
+            killFirefoxAndGeckoDriver();
+            System.out.println("Stop Firefox");
+
+            missingEpisodesToRetry = loadMissingEpisodes();
+        }
+
+        // download mp4
+        downloadMp4List();
     }
 
     private static void downloadMp4List() {
@@ -127,7 +162,7 @@ public class CdaDownloaderService {
         int i = line.indexOf("-") - 1;
         String substring = line.substring(0, i);
 
-        return "D:\\Filmy\\One Piece\\onePiece\\" + substring + ".mp4";
+        return "F:\\Filmy\\One Piece\\onePiece\\" + substring + ".mp4";
     }
 
     private static String getUrlFromLine(String line) {
@@ -162,6 +197,17 @@ public class CdaDownloaderService {
                 System.out.printf("File %d/%d - Downloaded: %d bytes (%.2f KB/s) - %.2f%%%n",
                         fileNumber, totalFiles, totalBytesRead, speed / 1024.0,
                         (double) totalBytesRead / fileSize * 100.0);
+
+                DownloadFileInfoDto fileInfoDto = DownloadFileInfoDto.builder()
+                        .fileNumber(String.valueOf(fileNumber))
+                        .fileName(String.valueOf(fileNumber))
+                        .fileSize(fileSize / (1024 * 1024))
+                        .totalBytesRead(totalBytesRead / (1024 * 1024))
+                        .downloadSpeed(String.format("%.2f", speed / 1024.0))
+                        .downloadProgress(String.format("%.2f%%", (double) totalBytesRead / fileSize * 100.0))
+                        .build();
+
+                addEpisodeToList(fileInfoDto);
             }
 
             System.out.println("File " + fileNumber + "/" + totalFiles + " downloaded successfully to: " + savePath);

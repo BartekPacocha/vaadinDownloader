@@ -11,7 +11,7 @@ public class DownloadFileInfoDto {
     private String fileName;
     private Long fileSize;
     private Long totalBytesRead;
-    private Double downloadSpeed;
-    private Double downloadProgress;
+    private String downloadSpeed;
+    private String downloadProgress;
 
 }
