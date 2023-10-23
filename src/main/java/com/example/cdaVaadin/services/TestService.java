@@ -2,7 +2,6 @@ package com.example.cdaVaadin.services;
 
 
 import com.example.cdaVaadin.dtos.DownloadFileInfoDto;
-import com.vaadin.flow.component.notification.Notification;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
@@ -20,6 +19,8 @@ public class TestService {
 
     private static final List<DownloadFileInfoDto> LIST = new ArrayList<>();
 
+    private static Boolean CREATE_FAKE_DATA = false;
+
     public void testMethod(Set<Integer> episodesToDownload) {
         episodesToDownload
                 .forEach(System.out::println);
@@ -30,7 +31,17 @@ public class TestService {
     }
 
     public void updateGrid() {
-        LIST.add(createData());
+        if (CREATE_FAKE_DATA) {
+            LIST.add(createData());
+        }
+    }
+
+    public static void startUpdateFakeData() {
+        CREATE_FAKE_DATA = true;
+    }
+
+    public static void stopUpdateFakeData() {
+        CREATE_FAKE_DATA = false;
     }
 
     private DownloadFileInfoDto createData() {
