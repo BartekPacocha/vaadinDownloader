@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static com.example.cdaVaadin.services.TestService.getDataFromList;
+import static com.example.cdaVaadin.services.TestService.startUpdateFakeData;
+import static com.example.cdaVaadin.services.TestService.stopUpdateFakeData;
 
 @Route("test")
 public class TestView extends VerticalLayout {
@@ -26,6 +28,9 @@ public class TestView extends VerticalLayout {
     private final Button buttonStartUpdate = new Button("Start update");
     private final Button buttonPlusInterval = new Button("+");
     private final Button buttonMinusInterval = new Button("-");
+
+    private final Button buttonStartCreateFakeData = new Button("Start fake data");
+    private final Button buttonStopCreateFakeData = new Button("Stop fake data");
 
     Span span = new Span("5000");
 
@@ -42,6 +47,7 @@ public class TestView extends VerticalLayout {
     public TestView() {
         this.setupGrid();
         this.setupButtons();
+        this.setupCreateFakeDataButtons();
 
         buttonStopUpdate.addClickListener(e -> stopUpdate());
 
@@ -76,9 +82,28 @@ public class TestView extends VerticalLayout {
         add(horizontalLayout);
     }
 
+    private void setupCreateFakeDataButtons() {
+        buttonStartCreateFakeData.addClickListener(e -> startCreateFakeData());
+        buttonStopCreateFakeData.addClickListener(e -> stopCreateFakeData());
+
+
+        HorizontalLayout horizontalLayout = new HorizontalLayout();
+        horizontalLayout.add(buttonStartCreateFakeData, buttonStopCreateFakeData);
+
+        add(horizontalLayout);
+    }
+
+    private void startCreateFakeData() {
+        startUpdateFakeData();
+    }
+
+    private void stopCreateFakeData() {
+        stopUpdateFakeData();
+    }
+
     private void refreshGridData() {
         List<DownloadFileInfoDto> dataFromList = getDataFromList();
-        List<DownloadFileInfoDto> copyOfData = new ArrayList<>(dataFromList); // Create a copy
+        List<DownloadFileInfoDto> copyOfData = new ArrayList<>(dataFromList);
 
         UI currentUI = UI.getCurrent();
         if (currentUI != null) {
