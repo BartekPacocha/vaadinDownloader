@@ -34,7 +34,6 @@ public class DownloadingView extends VerticalLayout {
             updateProgressBar(progress);
 
             if (progress == 100) {
-                // Show a notification when progress reaches 100
                 Notification.show("Task completed!");
             }
         }

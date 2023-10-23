@@ -11,15 +11,14 @@ import com.vaadin.flow.router.Route;
 public class FileDownloadView extends VerticalLayout implements ProgressListener {
 
     private Div fileNameLabel = new Div();
-    private Div progressLabel = new Div();// Initialize with a default value
+    private Div progressLabel = new Div();
     private FileDownloadService fileDownloadService;
 
     public FileDownloadView(FileDownloadService fileDownloadService) {
         this.fileDownloadService = fileDownloadService;
-        add(fileNameLabel, progressLabel); // Add labels to the view
+        add(fileNameLabel, progressLabel);
 
-        // Initiate file download
-        String fileName = "example.txt"; // Replace with the actual file name
+        String fileName = "example.txt";
         fileDownloadService.downloadFile(fileName, this);
     }
 
@@ -31,7 +30,6 @@ public class FileDownloadView extends VerticalLayout implements ProgressListener
         });
 
         if (progress == 100) {
-            // Download completed
             progressLabel.setText("Progress: 100% (Download Complete)");
         }
     }
